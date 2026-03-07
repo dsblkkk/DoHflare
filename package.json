@@ -1,9 +1,9 @@
 {
   "name": "dohflare",
-  "version": "1.0.0",
-  "description": "High-Performance DNS over HTTPS Edge Proxy for Cloudflare Workers",
+  "version": "1.1.0",
+  "description": "High-Performance DNS over HTTPS Edge Proxy for Cloudflare Workers & Pages",
   "private": true,
-  "main": "src/index.js",
+  "main": "src/_worker.js",
   "scripts": {
     "start": "wrangler dev",
     "deploy": "wrangler deploy"
@@ -11,10 +11,11 @@
   "keywords": [
     "cloudflare",
     "workers",
+    "pages",
     "dns",
     "doh",
     "proxy",
-    "edge-computing",
+    "dohproxy",
     "serverless"
   ],
   "author": "Racpast",

@@ -1,6 +1,6 @@
 /*
- * DoHflare - High-Performance DNS over HTTPS Edge Proxy
- * Copyright (C) 2026  Racpast <https://github.com/Racpast/DoHflare>
+ * DoHflare - High-Performance DNS over HTTPS Edge Proxy for Cloudflare Workers & Pages
+ * Copyright (C) 2026  Racpast <https://github.com/racpast/DoHflare>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -15,9 +15,9 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  *
- * ADDITIONAL NOTICE: Pursuant to Section 7 of the GNU AGPLv3, 
- * additional terms apply to this work. Refer to the NOTICE file 
- * in the repository for details regarding attribution requirements, 
+ * ADDITIONAL NOTICE: Pursuant to Section 7 of the GNU AGPLv3,
+ * additional terms apply to this work. Refer to the NOTICE file
+ * in the repository for details regarding attribution requirements,
  * trademark disclaimers, and compliance policies.
  */
 
@@ -652,7 +652,7 @@ class DnsPacketProcessor {
 /* ==========================================================================
    6. REQUEST HANDLER
    ========================================================================== */
-class DoHCoreEngine {
+class DoHRequestHandler {
   static initializeConfig(environmentVariables) {
     const parseArraySafely = (jsonString, fallbackArray) => {
       if (!jsonString) return fallbackArray;
@@ -732,7 +732,7 @@ class DoHCoreEngine {
     };
   }
 
-  static evaluateGlobalWritePermission(requestConfig) {
+  static checkWriteRateLimit(requestConfig) {
     const currentTimestamp = Date.now();
     if (currentTimestamp - rateLimitWindowStartTimestamp > 60 * 1000) {
       rateLimitWindowStartTimestamp = currentTimestamp;
@@ -752,7 +752,7 @@ class DoHCoreEngine {
     return 1 + signedJitter / 100.0;
   }
 
-  static buildFinalResponse(
+  static createResponse(
     payloadByteArray,
     transactionId,
     hasClientEcs,
@@ -791,7 +791,7 @@ class DoHCoreEngine {
     const serviceHostname = new URL(request.url).hostname;
     const fullServiceEndpoint = `https://${serviceHostname}${reqConfig.DOH_PATH}`;
 
-    return `<!doctypehtml><html lang="en"><meta charset="UTF-8"><meta content="width=device-width,initial-scale=1"name="viewport"><link href="data:image/x-icon;base64,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"rel="icon"type="image/x-icon"><title>DoHflare | Edge DNS Proxy</title><style>:root{--bg:#ffffff;--text:#1d1d1f;--accent:#0071e3;--cf-orange:#f38020;--sub:#86868b;--card:#f5f5f7;--border:#d2d2d7;--code-bg:#f5f5f7}@media (prefers-color-scheme:dark){:root{--bg:#0b0e14;--text:#e6edf3;--accent:#2f81f7;--sub:#7d8590;--card:#161b22;--border:#30363d;--code-bg:#0d1117}}body{font-family:-apple-system,BlinkMacSystemFont,Inter,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh;line-height:1.6;overflow-x:hidden;transition:background .3s,color .3s}.container{width:100%;max-width:850px;padding:40px 24px;box-sizing:border-box;animation:fadeIn .8s ease-out}@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}.header{text-align:left;margin-bottom:48px;border-bottom:1px solid var(--border);padding-bottom:24px}h1{font-size:2.8rem;margin:0;font-weight:800;letter-spacing:-.03em;background:linear-gradient(135deg,var(--text) 30%,var(--accent) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent}.tagline{color:var(--sub);font-size:1.1rem;margin-top:8px;font-weight:500}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px;margin-bottom:48px}.card{background:var(--card);border:1px solid var(--border);padding:28px;border-radius:12px;transition:all .3s cubic-bezier(.4,0,.2,1);cursor:default}.card:hover{border-color:var(--accent);transform:translateY(-4px);box-shadow:0 8px 24px rgba(0,0,0,.15)}.card h3{margin:0 0 12px 0;font-size:.85rem;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);font-weight:700}.card p{margin:0;font-size:.95rem;color:var(--sub);font-weight:400;line-height:1.6}.endpoint-box{background:var(--code-bg);border:1px solid var(--border);padding:28px;border-radius:12px;text-align:left;margin-bottom:48px;transition:border-color .3s}.endpoint-box:hover{border-color:var(--sub)}.endpoint-label{display:block;font-size:.75rem;color:var(--sub);margin-bottom:12px;text-transform:uppercase;font-weight:700;letter-spacing:.05em}.code{font-family:SFMono-Regular,Consolas,"Liberation Mono",monospace;color:var(--accent);font-size:1.05rem;word-break:break-all}.links{display:flex;gap:32px;justify-content:flex-start}.links a{color:var(--text);text-decoration:none;font-size:.95rem;display:flex;align-items:center;font-weight:500;transition:color .2s}.links a:hover{color:var(--accent)}.links a svg{margin-right:8px;flex-shrink:0}.footer{margin-top:50px;text-align:left;font-size:.85rem;color:var(--sub);border-top:1px solid var(--border);padding-top:24px}.reveal-link{position:relative;text-decoration:none!important;transition:opacity .2s}.reveal-link::after{content:'';position:absolute;width:0;height:1.5px;bottom:-2px;left:50%;transform:translateX(-50%);transition:width .3s cubic-bezier(.4,0,.2,1)}.reveal-link:hover::after{width:100%}.author-link{color:inherit;font-weight:500}.author-link::after{background-color:var(--accent)}.author-link:hover{color:var(--accent);opacity:1}.cf-link{color:var(--cf-orange)!important;font-size:.8rem;font-weight:600;opacity:.9}.cf-link::after{background-color:var(--cf-orange)}.cf-link:hover{opacity:1}</style><div class="container"><header class="header"><h1>DoHflare</h1><div class="tagline">High-Performance DNS over HTTPS Edge Proxy</div></header><div class="grid"><div class="card"><h3>Multi-Tiered Caching Architecture</h3><p>Integrates high-speed L1 isolate memory caching with distributed L2 global caching, strictly enforcing TTL constraints to minimize upstream resolution latency.</div><div class="card"><h3>RFC Protocol Compliance</h3><p>Maintains absolute state transparency and preserves EDNS0 Client Subnet (ECS) payloads, ensuring optimal geolocation routing and DNS message integrity.</div><div class="card"><h3>Distributed System Resilience</h3><p>Utilizes collision-resistant FNV-1a hashing and deterministic TTL jitter algorithms to mitigate cache stampedes and sustain high availability under load.</div><div class="card"><h3>Edge-Level Traffic Management</h3><p>Implements concurrent request coalescing, aggressive payload size validation, and global write rate limiting to prevent upstream saturation and protocol abuse.</div></div><div class="endpoint-box"><span class="endpoint-label">Resolver Endpoint URL</span><div class="code">${fullServiceEndpoint}</div></div><div class="links"><a href="https://github.com/Racpast/DoHflare"target="_blank"><svg fill="currentColor"height="19"viewBox="0 0 16 16"width="19"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg> GitHub </a><a href="https://www.gnu.org/licenses/agpl-3.0.html"target="_blank"><svg fill="currentColor"height="21"viewBox="0 0 1024 1024"width="21"><path d="M640 938.666667H256c-93.866667 0-170.666667-76.8-170.666667-170.666667v-42.666667c0-25.6 17.066667-42.666667 42.666667-42.666666h42.666667V256c0-93.866667 76.8-170.666667 170.666666-170.666667h469.333334c72.533333 0 128 55.466667 128 128s-55.466667 128-128 128h-42.666667v469.333334c0 72.533333-55.466667 128-128 128zm-384-256h298.666667c25.6 0 42.666667 17.066667 42.666666 42.666666v85.333334c0 25.6 17.066667 42.666667 42.666667 42.666666s42.666667-17.066667 42.666667-42.666666V213.333333c0-17.066667 4.266667-29.866667 8.533333-42.666666H341.333333c-46.933333 0-85.333333 38.4-85.333333 85.333333v426.666667zm-85.333333 85.333333c0 46.933333 38.4 85.333333 85.333333 85.333333h264.533333c-4.266667-12.8-8.533333-25.6-8.533333-42.666666v-42.666667H170.666667zM768 256h42.666667c25.6 0 42.666667-17.066667 42.666666-42.666667s-17.066667-42.666667-42.666666-42.666666-42.666667 17.066667-42.666667 42.666666v42.666667zM554.666667 341.333333H384c-25.6 0-42.666667-17.066667-42.666667-42.666666s17.066667-42.666667 42.666667-42.666667h170.666667c25.6 0 42.666667 17.066667 42.666666 42.666667s-17.066667 42.666667-42.666666 42.666666zM554.666667 512H384c-25.6 0-42.666667-17.066667-42.666667-42.666667s17.066667-42.666667 42.666667-42.666666h170.666667c25.6 0 42.666667 17.066667 42.666666 42.666666s-17.066667 42.666667-42.666666 42.666667"/></svg> License: AGPL-3.0</a></div><footer class="footer">Copyright © ${currentYear} <a href="https://github.com/Racpast"target="_blank"class="reveal-link author-link">Racpast</a>. All rights reserved.<br><span style="opacity:.8;margin-top:10px;display:block">Powered by <a href="https://workers.cloudflare.com/"target="_blank"class="reveal-link cf-link">Cloudflare Workers</a></span></footer></div>`;
+    return `<!doctypehtml><html lang="en"><meta charset="UTF-8"><meta content="width=device-width,initial-scale=1"name="viewport"><link href="data:image/x-icon;base64,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"rel="icon"type="image/x-icon"><title>DoHflare | Edge DNS Proxy</title><style>:root{--bg:#ffffff;--text:#1d1d1f;--accent:#0071e3;--cf-orange:#f38020;--sub:#86868b;--card:#f5f5f7;--border:#d2d2d7;--code-bg:#f5f5f7}@media (prefers-color-scheme:dark){:root{--bg:#0b0e14;--text:#e6edf3;--accent:#2f81f7;--sub:#7d8590;--card:#161b22;--border:#30363d;--code-bg:#0d1117}}body{font-family:-apple-system,BlinkMacSystemFont,Inter,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh;line-height:1.6;overflow-x:hidden;transition:background .3s,color .3s}.container{width:100%;max-width:850px;padding:40px 24px;box-sizing:border-box;animation:fadeIn .8s ease-out}@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}.header{text-align:left;margin-bottom:48px;border-bottom:1px solid var(--border);padding-bottom:24px}h1{font-size:2.8rem;margin:0;font-weight:800;letter-spacing:-.03em;background:linear-gradient(135deg,var(--text) 30%,var(--accent) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent}.tagline{color:var(--sub);font-size:1.1rem;margin-top:8px;font-weight:500}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px;margin-bottom:48px}.card{background:var(--card);border:1px solid var(--border);padding:28px;border-radius:12px;transition:all .3s cubic-bezier(.4,0,.2,1);cursor:default}.card:hover{border-color:var(--accent);transform:translateY(-4px);box-shadow:0 8px 24px rgba(0,0,0,.15)}.card h3{margin:0 0 12px 0;font-size:.85rem;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);font-weight:700}.card p{margin:0;font-size:.95rem;color:var(--sub);font-weight:400;line-height:1.6}.endpoint-box{background:var(--code-bg);border:1px solid var(--border);padding:28px;border-radius:12px;text-align:left;margin-bottom:48px;transition:border-color .3s}.endpoint-box:hover{border-color:var(--sub)}.endpoint-label{display:block;font-size:.75rem;color:var(--sub);margin-bottom:12px;text-transform:uppercase;font-weight:700;letter-spacing:.05em}.code{font-family:SFMono-Regular,Consolas,"Liberation Mono",monospace;color:var(--accent);font-size:1.05rem;word-break:break-all}.links{display:flex;gap:32px;justify-content:flex-start}.links a{color:var(--text);text-decoration:none;font-size:.95rem;display:flex;align-items:center;font-weight:500;transition:color .2s}.links a:hover{color:var(--accent)}.links a svg{margin-right:8px;flex-shrink:0}.footer{margin-top:50px;text-align:left;font-size:.85rem;color:var(--sub);border-top:1px solid var(--border);padding-top:24px}.reveal-link{position:relative;text-decoration:none!important;transition:opacity .2s}.reveal-link::after{content:'';position:absolute;width:0;height:1.5px;bottom:-2px;left:50%;transform:translateX(-50%);transition:width .3s cubic-bezier(.4,0,.2,1)}.reveal-link:hover::after{width:100%}.author-link{color:inherit;font-weight:500}.author-link::after{background-color:var(--accent)}.author-link:hover{color:var(--accent);opacity:1}.cf-link{color:var(--cf-orange)!important;font-size:.8rem;font-weight:600;opacity:.9}.cf-link::after{background-color:var(--cf-orange)}.cf-link:hover{opacity:1}</style><div class="container"><header class="header"><h1>DoHflare</h1><div class="tagline">High-Performance DNS over HTTPS Edge Proxy for Cloudflare Workers &amp; Pages</div></header><div class="grid"><div class="card"><h3>Multi-Tiered Caching</h3><p>Combines L1 isolated in-memory caching with L2 distributed global storage. Strictly enforces TTL constraints to slash upstream resolution latency and maximize responsiveness.</div><div class="card"><h3>Precision Traffic Steering</h3><p>Full EDNS0 Client Subnet (ECS) support with privacy-preserving truncation. Directs CDNs to serve the optimal edge node IPs, dramatically improving resolution quality in complex network regions.</div><div class="card"><h3>Resilient Cache Logic</h3><p>Distributes cache keys via collision-resistant FNV-1a hashing. Paired with deterministic TTL jitter, it prevents cache stampedes and ensures rock-solid efficiency under high-concurrency loads.</div><div class="card"><h3>Intelligent Traffic Shaping</h3><p>Mitigates upstream overload and protocol abuse through request coalescing, payload validation, and global write-rate limiting, guaranteeing sustained service stability.</div></div><div class="endpoint-box"><span class="endpoint-label">Resolver Endpoint URL</span><div class="code">${fullServiceEndpoint}</div></div><div class="links"><a href="https://github.com/racpast/DoHflare"target="_blank"><svg fill="currentColor"height="19"viewBox="0 0 16 16"width="19"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg> GitHub </a><a href="https://dohflare.racpast.com/"target="_blank"><svg fill="currentColor"height="21"viewBox="0 0 1024 1024"width="21"><path d="M392.169 373.756 151.421 373.756c-7.911 0-14.279 6.389-14.279 14.28 0 7.851 6.368 14.24 14.279 14.24L392.17 402.276c7.851 0 14.24-6.388 14.24-14.24C406.409 380.146 400.021 373.756 392.169 373.756zM392.169 491.098 151.421 491.098c-7.911 0-14.279 6.408-14.279 14.278 0 7.892 6.368 14.261 14.279 14.261L392.17 519.637c7.851 0 14.24-6.368 14.24-14.261C406.409 497.505 400.021 491.098 392.169 491.098zM392.169 608.479 151.421 608.479c-7.911 0-14.279 6.406-14.279 14.276 0 7.873 6.368 14.261 14.279 14.261L392.17 637.016c7.851 0 14.24-6.388 14.24-14.261C406.409 614.885 400.021 608.479 392.169 608.479zM618.357 388.036c0 7.851 6.367 14.24 14.24 14.24l240.746 0c7.892 0 14.261-6.388 14.261-14.24 0-7.89-6.367-14.28-14.261-14.28L632.599 373.756C624.728 373.756 618.357 380.146 618.357 388.036zM873.347 491.098 632.599 491.098c-7.872 0-14.24 6.408-14.24 14.278 0 7.892 6.368 14.261 14.24 14.261l240.748 0c7.89 0 14.259-6.368 14.259-14.261C887.604 497.505 881.237 491.098 873.347 491.098zM873.347 608.479 632.599 608.479c-7.872 0-14.24 6.406-14.24 14.276 0 7.873 6.368 14.261 14.24 14.261l240.748 0c7.89 0 14.259-6.388 14.259-14.261C887.604 614.885 881.237 608.479 873.347 608.479zM751.301 132.346c-88.362 0-187.057 13.519-238.526 48.247-51.472-34.728-150.145-48.247-238.526-48.247-126.493 0-274.174 27.64-274.174 105.605l0 622.81c0 10.554 4.645 20.487 12.696 27.258 8.051 6.77 18.666 9.652 29.039 7.849 70.136-12.133 150.486-18.545 232.437-18.545 81.953 0 162.302 6.41 232.439 18.545 0.96 0.182 1.901 0.182 2.863 0.282 0.76 0.06 1.5 0.119 2.262 0.141 0.319 0.039 0.643 0.099 0.963 0.099 1.902 0 3.805-0.16 5.688-0.5 0.119-0.022 0.238 0 0.399-0.022 70.139-12.133 150.488-18.545 232.441-18.545 81.949 0 162.32 6.41 232.437 18.545 2.025 0.361 4.084 0.521 6.087 0.521 8.331 0 16.463-2.903 22.949-8.37 8.054-6.771 12.699-16.702 12.699-27.258L1025.474 237.951C1025.474 159.984 877.791 132.346 751.301 132.346zM71.371 819.203 71.371 242.457c14.418-14.121 85.636-38.813 202.876-38.813 117.221 0 188.458 24.693 202.876 38.813l0 576.747c-63.406-8.67-132.659-13.198-202.876-13.198C204.032 806.005 134.758 810.533 71.371 819.203zM954.177 819.203c-126.792-17.304-279.001-17.304-405.755 0L548.422 242.457c14.419-14.121 85.639-38.813 202.879-38.813 117.239 0 188.455 24.693 202.875 38.813L954.177 819.203 954.177 819.203z"/></svg> Documentation</a><a href="https://www.gnu.org/licenses/agpl-3.0.html"target="_blank"><svg fill="currentColor"height="21"viewBox="0 0 1024 1024"width="21"><path d="M640 938.666667H256c-93.866667 0-170.666667-76.8-170.666667-170.666667v-42.666667c0-25.6 17.066667-42.666667 42.666667-42.666666h42.666667V256c0-93.866667 76.8-170.666667 170.666666-170.666667h469.333334c72.533333 0 128 55.466667 128 128s-55.466667 128-128 128h-42.666667v469.333334c0 72.533333-55.466667 128-128 128zm-384-256h298.666667c25.6 0 42.666667 17.066667 42.666666 42.666666v85.333334c0 25.6 17.066667 42.666667 42.666667 42.666666s42.666667-17.066667 42.666667-42.666666V213.333333c0-17.066667 4.266667-29.866667 8.533333-42.666666H341.333333c-46.933333 0-85.333333 38.4-85.333333 85.333333v426.666667zm-85.333333 85.333333c0 46.933333 38.4 85.333333 85.333333 85.333333h264.533333c-4.266667-12.8-8.533333-25.6-8.533333-42.666666v-42.666667H170.666667zM768 256h42.666667c25.6 0 42.666667-17.066667 42.666666-42.666667s-17.066667-42.666667-42.666666-42.666666-42.666667 17.066667-42.666667 42.666666v42.666667zM554.666667 341.333333H384c-25.6 0-42.666667-17.066667-42.666667-42.666666s17.066667-42.666667 42.666667-42.666667h170.666667c25.6 0 42.666667 17.066667 42.666666 42.666667s-17.066667 42.666667-42.666666 42.666666zM554.666667 512H384c-25.6 0-42.666667-17.066667-42.666667-42.666667s17.066667-42.666667 42.666667-42.666666h170.666667c25.6 0 42.666667 17.066667 42.666666 42.666666s-17.066667 42.666667-42.666666 42.666667"/></svg> AGPL-3.0</a></div><footer class="footer">Copyright © ${currentYear} <a href="https://github.com/racpast"target="_blank"class="reveal-link author-link">Racpast</a>. All rights reserved.<br><span style="opacity:.8;margin-top:10px;display:block">Powered by <a href="https://workers.cloudflare.com/"target="_blank"class="reveal-link cf-link">Cloudflare Workers</a></span></footer></div>`;
   }
 
   static async processIncomingRequest(
@@ -921,7 +921,7 @@ class DoHCoreEngine {
             (memoryCacheEntry.expiryTimestamp - currentTimestamp) / 1000,
           ),
         );
-        return this.buildFinalResponse(
+        return this.createResponse(
           memoryCacheEntry.payloadByteArray,
           transactionIdByteArray,
           hasClientEcs,
@@ -944,7 +944,7 @@ class DoHCoreEngine {
       ) {
         if (!requestCoalescingMap.has(cacheKeyHex)) {
           executionContext.waitUntil(
-            this.executeUpstreamResolution(
+            this.resolveUpstream(
               processedQueryBuffer,
               cacheKeyHex,
               probabilitySample,
@@ -955,7 +955,7 @@ class DoHCoreEngine {
             ).catch(() => {}),
           );
         }
-        return this.buildFinalResponse(
+        return this.createResponse(
           memoryCacheEntry.payloadByteArray,
           transactionIdByteArray,
           hasClientEcs,
@@ -996,7 +996,7 @@ class DoHCoreEngine {
               },
               requestConfig.EXTREME_STALE_FALLBACK_MS,
             );
-            return this.buildFinalResponse(
+            return this.createResponse(
               payloadByteArray,
               transactionIdByteArray,
               hasClientEcs,
@@ -1015,7 +1015,7 @@ class DoHCoreEngine {
     if (requestCoalescingMap.has(cacheKeyHex)) {
       try {
         const coalescedResult = await requestCoalescingMap.get(cacheKeyHex);
-        return this.buildFinalResponse(
+        return this.createResponse(
           coalescedResult.payloadByteArray,
           transactionIdByteArray,
           hasClientEcs,
@@ -1039,7 +1039,7 @@ class DoHCoreEngine {
     requestCoalescingMap.set(cacheKeyHex, upstreamFetchPromise);
 
     try {
-      const resolutionResult = await this.executeUpstreamResolution(
+      const resolutionResult = await this.resolveUpstream(
         processedQueryBuffer,
         cacheKeyHex,
         probabilitySample,
@@ -1049,7 +1049,7 @@ class DoHCoreEngine {
         requestConfig,
       );
       promiseResolver(resolutionResult);
-      return this.buildFinalResponse(
+      return this.createResponse(
         resolutionResult.payloadByteArray,
         transactionIdByteArray,
         hasClientEcs,
@@ -1067,7 +1067,7 @@ class DoHCoreEngine {
       promiseRejecter(resolutionError);
       const staleCacheEntry = primaryMemoryCache.peek(cacheKeyHex);
       if (staleCacheEntry && staleCacheEntry.payloadByteArray) {
-        return this.buildFinalResponse(
+        return this.createResponse(
           staleCacheEntry.payloadByteArray,
           transactionIdByteArray,
           hasClientEcs,
@@ -1088,7 +1088,7 @@ class DoHCoreEngine {
     }
   }
 
-  static async executeUpstreamResolution(
+  static async resolveUpstream(
     processedQueryBuffer,
     cacheKeyHex,
     probabilitySample,
@@ -1098,18 +1098,15 @@ class DoHCoreEngine {
     requestConfig,
   ) {
     let internalResolutionError = null;
-    for (
-      let attemptIndex = 0;
-      attemptIndex <
-      Math.min(
-        requestConfig.UPSTREAM_URLS.length,
-        requestConfig.MAX_RETRIES + 1,
-      );
-      attemptIndex++
-    ) {
+    const maxAttempts = requestConfig.MAX_RETRIES + 1;
+    const urlsCount = requestConfig.UPSTREAM_URLS.length;
+
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      const targetUrl = requestConfig.UPSTREAM_URLS[attempt % urlsCount];
+
       try {
-        return await this.fetchAndPersistUpstream(
-          requestConfig.UPSTREAM_URLS[attemptIndex],
+        return await this.fetchUpstream(
+          targetUrl,
           processedQueryBuffer,
           cacheKeyHex,
           probabilitySample,
@@ -1125,7 +1122,7 @@ class DoHCoreEngine {
     throw internalResolutionError || new Error(ERRORS.TIMEOUT);
   }
 
-  static async fetchAndPersistUpstream(
+  static async fetchUpstream(
     upstreamUrlEndpoint,
     processedQueryBuffer,
     cacheKeyHex,
@@ -1212,7 +1209,7 @@ class DoHCoreEngine {
         if (
           Date.now() - lastGlobalWriteTimestamp >
             requestConfig.GLOBAL_WRITE_COOLDOWN_MS &&
-          this.evaluateGlobalWritePermission(requestConfig)
+          this.checkWriteRateLimit(requestConfig)
         ) {
           if (!activeGlobalWriteLocks.has(cacheKeyHex)) {
             activeGlobalWriteLocks.add(cacheKeyHex);
@@ -1276,7 +1273,7 @@ class DoHCoreEngine {
 export default {
   async fetch(incomingRequest, environmentVariables, executionContext) {
     try {
-      return await DoHCoreEngine.processIncomingRequest(
+      return await DoHRequestHandler.processIncomingRequest(
         incomingRequest,
         environmentVariables,
         executionContext,

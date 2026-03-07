@@ -1,5 +1,5 @@
-DoHflare - High-Performance DNS over HTTPS Edge Proxy
-Copyright (C) 2026  Racpast <https://github.com/Racpast/DoHflare>
+DoHflare - High-Performance DNS over HTTPS Edge Proxy for Cloudflare Workers & Pages
+Copyright (C) 2026  Racpast <https://github.com/racpast/DoHflare>
 
 ===========================================================================
 ADDITIONAL TERMS PURSUANT TO SECTION 7 OF GNU AGPLv3
@@ -8,7 +8,7 @@ ADDITIONAL TERMS PURSUANT TO SECTION 7 OF GNU AGPLv3
 This Program is licensed under the GNU Affero General Public License, version 3. In accordance with Section 7, the following additional terms and permissions apply:
 
 1. ATTRIBUTION REQUIREMENTS (Section 7b):
-   For any work that includes this source code or a modified version thereof, the "Powered by DoHflare" attribution and the link to the original repository (https://github.com/Racpast/DoHflare) must be preserved in any user-facing interface (such as a web landing page or dashboard). If the Program as received by you displays such an attribution, you must not remove it.
+   For any work that includes this source code or a modified version thereof, the "Powered by DoHflare" attribution and the link to the original repository (https://github.com/racpast/DoHflare) must be preserved in any user-facing interface (such as a web landing page or dashboard). If the Program as received by you displays such an attribution, you must not remove it.
 
 2. TRADEMARK DISCLAIMER (Section 7e):
    The GitHub, Cloudflare, and Cloudflare Workers logos and brand names are trademarks of their respective owners and are used here for identification and informational purposes only. Their use does not imply endorsement by GitHub, Cloudflare, or any related entities. This license does not grant you any rights to use these trademarks in connection with your modified versions of the program.

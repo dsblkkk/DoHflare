@@ -1,20 +1,18 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "dohflare",
-  "main": "src/index.js",
-  "compatibility_date": "2026-02-27",
-  "observability": {
-    "enabled": true
-  },
+  "main": "src/_worker.js",
+  // "pages_build_output_dir": "src",
+  "compatibility_date": "2026-03-08",
   "placement": {
-    "mode": "smart" // Recommended for Edge Proxies to minimize global routing latency
+    "mode": "smart"
   },
   // Environment Variables (Vars)
   // The application codebase implements robust runtime defaults for all parameters below.
   // Uncomment specific variables only to override the default execution behavior.
   "vars": {
     // Upstream Resolution & Routing Configuration
-    // "UPSTREAM_URLS": "[\"https://dns.google/dns-query\", \"https://dns11.quad9.net/dns-query\"]",  // List of DNS resolvers for upstream resolution
+    // "UPSTREAM_URLS": "https://dns.google/dns-query,https://dns11.quad9.net/dns-query",  // List of DNS resolvers for upstream resolution
     // "DOH_PATH": "/dns-query",  // Path for the DNS over HTTPS endpoint
     // "DOH_CONTENT_TYPE": "application/dns-message",  // Content type for DNS over HTTPS queries
     

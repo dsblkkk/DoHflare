@@ -1,0 +1,12 @@
+{
+  "name": "dohflare-docs",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "vitepress dev",
+    "build": "npm run build:zip && vitepress build",
+    "build:zip": "mkdir -p public && (cd .. && git archive --format=zip --prefix=DoHflare-main/ HEAD) > public/DoHflare-main.zip"
+  },
+  "devDependencies": {
+    "vitepress": "^1.6.4"
+  }
+}
